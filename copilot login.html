@@ -1,3 +1,40 @@
+Function New-IsoFile {
+    param(
+        [Parameter(Mandatory=$true)] [string]$SourceFile,
+        [Parameter(Mandatory=$true)] [string]$IsoPath
+    )
+
+    $temp = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath() + [System.Guid]::NewGuid().ToString())
+    Copy-Item $SourceFile -Destination $temp
+
+    $iso = New-Object -ComObject IMAPI2FS.MsftFileSystemImage
+    $iso.ChooseImageDefaults($null)
+    $isoResult = $iso.Root.AddTree($temp.FullName, $false)
+    $resultImage = $iso.CreateResultImage()
+    $stream = $resultImage.ImageStream
+    $file = [System.IO.File]::OpenWrite($IsoPath)
+    $buffer = New-Object byte[] 2048
+
+    do {
+        $read = $stream.Read($buffer, 2048)
+        $file.Write($buffer, 0, $read)
+    } while ($read -gt 0)
+
+    $file.Close()
+    Remove-Item $temp -Recurse -Force
+}
+
+
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
     <style>
@@ -93,4 +130,5 @@
         <h3>Don't Misuse this website</h3>
     </center>
 </body>
+
 </html>
